@@ -1,0 +1,140 @@
+from pathlib import Path
+
+html = r'''<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Breaking Bad | Ultimate Fan Quiz</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700;900&display=swap');
+:root{--green:#39ff14;--blue:#00d9ff;--bg:#070a07;--panel:#101610;--muted:#91a091}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 15% 10%,#15301555,transparent 40%),radial-gradient(ellipse at 90% 90%,#002b3d40,transparent 35%),var(--bg);color:#f2f5f2;font-family:Vazirmatn,Arial,sans-serif}
+header{padding:20px 7%;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #293629;gap:12px}
+.logo{font:bold 25px Arial,sans-serif;direction:ltr;color:var(--green);text-shadow:0 0 15px #39ff1450}.logo span{color:var(--blue)}
+select{background:#101610;color:var(--green);border:1px solid #354535;border-radius:8px;padding:9px;font:inherit}
+.hero{text-align:center;padding:58px 18px 32px}.badge{display:inline-block;border:1px solid #39ff1470;color:var(--green);border-radius:30px;padding:6px 15px;font-size:12px;margin-bottom:18px}
+h1{font:900 clamp(38px,7vw,70px) Arial,sans-serif;direction:ltr;margin:0 0 18px}h1 span{color:var(--green)}.hero p{max-width:580px;margin:auto;color:var(--muted);line-height:2}
+.stats{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:25px}.stat{background:#101610;border:1px solid #293629;border-radius:10px;padding:12px 22px;min-width:105px}.stat strong{display:block;color:var(--green);font-size:21px}.stat small{color:var(--muted)}
+.container{width:min(850px,92%);margin:24px auto 65px}.quiz-info{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:var(--muted);margin-bottom:12px}.progress{height:5px;background:#202820;border-radius:8px;overflow:hidden;margin-bottom:24px}#progressBar{height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--blue));transition:width .25s}
+.card{background:linear-gradient(145deg,#121812,#0b0e0b);border:1px solid #293629;border-radius:16px;padding:25px;margin-bottom:16px}.qnum{direction:ltr;text-align:right;color:var(--green);font:bold 12px Arial;margin-bottom:12px}.qtitle{font-size:17px;line-height:2;margin:0 0 18px}.options{display:grid;grid-template-columns:1fr 1fr;gap:11px}.option{display:flex;align-items:center;gap:11px;text-align:start;background:#0c100c;border:1px solid #293629;color:#f2f5f2;border-radius:9px;padding:12px;min-height:57px;font:inherit;cursor:pointer}.option:hover:not(:disabled),.option.selected{border-color:var(--green);background:#142014}.option:disabled{cursor:default}.option.correct{border-color:var(--green);background:#173b17}.option.wrong{border-color:#ff4545;background:#351414}.letter{display:grid;place-items:center;flex-shrink:0;width:28px;height:28px;border:1px solid #354535;border-radius:7px;color:var(--green);font:13px Arial}
+.explanation{display:none;margin-top:14px;padding:12px;border-radius:8px;background:#101d10;color:#c5eac5;font-size:13px;line-height:2}.explanation.show{display:block}
+.actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:25px}.btn{border-radius:9px;padding:13px 22px;font:700 14px Vazirmatn,Arial,sans-serif;cursor:pointer}.primary{background:var(--green);color:#071007;border:1px solid var(--green)}.secondary{background:transparent;color:var(--green);border:1px solid var(--green)}.btn:disabled{opacity:.4;cursor:not-allowed}
+#result{display:none;text-align:center;border:1px solid #354535;background:#101610;border-radius:18px;padding:30px 18px;margin-bottom:28px}#resultTitle{font-size:25px}#resultScore{font:bold 58px Arial;color:var(--green);margin:18px}#resultMessage{line-height:2;color:#bdc9bd}.result-details{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:22px}.pill{padding:10px 14px;border:1px solid #293629;border-radius:9px;font-size:13px}.pill strong{color:var(--green)}
+footer{text-align:center;border-top:1px solid #202820;padding:24px;color:#687368;font-size:12px}footer span{color:var(--green)}
+@media(max-width:600px){header{padding:16px 5%}.options{grid-template-columns:1fr}.card{padding:18px}.stat{min-width:90px;padding:10px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">BREAKING<span> BAD</span></div>
+  <select id="language" aria-label="Language">
+    <option value="fa">فارسی</option><option value="en">English</option>
+  </select>
+</header>
+<section class="hero">
+  <div class="badge" id="badge">⚗️ آزمون مخصوص طرفداران</div>
+  <h1>BREAKING <span>BAD</span></h1>
+  <p id="description">فکر می‌کنی همه‌چیز رو دربارهٔ والتر وایت و جسی پینکمن می‌دونی؟ با این ۲۰ سؤال خودت رو به چالش بکش!</p>
+  <div class="stats">
+    <div class="stat"><strong>20</strong><small id="statQuestions">سؤال</small></div>
+    <div class="stat"><strong>100</strong><small id="statScore">امتیاز کامل</small></div>
+    <div class="stat"><strong>∞</strong><small id="statFans">مخصوص طرفداران</small></div>
+  </div>
+</section>
+<main class="container">
+  <div class="quiz-info"><span id="quizLabel">آزمون طرفداران سریال</span><span id="progressText">۰ از ۲۰ پاسخ داده شده</span></div>
+  <div class="progress"><div id="progressBar"></div></div>
+  <section id="result">
+    <h2 id="resultTitle"></h2><div id="resultScore"></div><p id="resultMessage"></p>
+    <div class="result-details">
+      <div class="pill"><span id="correctLabel">درست: </span><strong id="correctCount">0</strong></div>
+      <div class="pill"><span id="wrongLabel">اشتباه: </span><strong id="wrongCount">0</strong></div>
+      <div class="pill"><span id="blankLabel">بی‌پاسخ: </span><strong id="blankCount">0</strong></div>
+    </div>
+    <button class="btn primary" id="restartBtn">🔄 شروع دوباره</button>
+  </section>
+  <div id="quiz"></div>
+  <div class="actions" id="actions">
+    <button class="btn secondary" id="resetBtn">پاک کردن پاسخ‌ها</button>
+    <button class="btn primary" id="submitBtn">بررسی پاسخ‌ها ←</button>
+  </div>
+</main>
+<footer><span>BREAKING BAD</span><br><span id="footerText">یک آزمون هواداری غیررسمی</span></footer>
+<script>
+const questions=[
+{q:"نام کامل شخصیت اصلی سریال چیست؟",en:"What is the full name of the main character?",o:["Walter White","Walter Black","William White","Walt Wilson"],a:0,x:"نام کامل او Walter Hartwell White است.",xe:"His full name is Walter Hartwell White."},
+{q:"والتر وایت در ابتدای سریال چه شغلی دارد؟",en:"What is Walter White's job at the beginning?",o:["پلیس","معلم شیمی","وکیل","پزشک"],oe:["Police officer","Chemistry teacher","Lawyer","Doctor"],a:1,x:"والتر معلم شیمی دبیرستان است.",xe:"Walter is a high school chemistry teacher."},
+{q:"نام مستعار والتر در دنیای خلاف‌کاران چیست؟",en:"What is Walter's criminal alias?",o:["El Camino","Heisenberg","Capone","The Professor"],a:1,x:"والتر با نام Heisenberg شناخته می‌شود.",xe:"Walter is known as Heisenberg."},
+{q:"نام خانوادگی جسی چیست؟",en:"What is Jesse's last name?",o:["Pinkman","Goodman","Fring","Schrader"],a:0,x:"نام او Jesse Pinkman است.",xe:"His name is Jesse Pinkman."},
+{q:"داستان عمدتاً در کدام شهر می‌گذرد؟",en:"In which city does most of the story take place?",o:["لاس‌وگاس","آلبوکرکی","لس‌آنجلس","دنور"],oe:["Las Vegas","Albuquerque","Los Angeles","Denver"],a:1,x:"داستان عمدتاً در آلبوکرکی، نیومکزیکو، اتفاق می‌افتد.",xe:"The story mainly takes place in Albuquerque, New Mexico."},
+{q:"نام همسر والتر چیست؟",en:"What is Walter's wife's name?",o:["Marie","Jane","Skyler","Andrea"],a:2,x:"نام همسر والتر Skyler White است.",xe:"Walter's wife is Skyler White."},
+{q:"هنک شریدر چه نسبتی با اسکایلر دارد؟",en:"How is Hank Schrader related to Skyler?",o:["برادر اوست","پدر اوست","شوهر خواهر اوست","پسرعموی اوست"],oe:["Her brother","Her father","Her brother-in-law","Her cousin"],a:2,x:"هنک شوهر ماری، خواهر اسکایلر، است.",xe:"Hank is married to Marie, Skyler's sister."},
+{q:"نام رستوران زنجیره‌ای گاس فرینگ چیست؟",en:"What is the name of Gus Fring's restaurant chain?",o:["Los Pollos Hermanos","Chicken Palace","Pollos Grande","El Pollo Azul"],a:0,x:"نام رستوران Los Pollos Hermanos است.",xe:"The restaurant chain is called Los Pollos Hermanos."},
+{q:"نام وکیل والتر و جسی چیست؟",en:"What is the name of Walter and Jesse's lawyer?",o:["Mike Ehrmantraut","Saul Goodman","Hank Schrader","Gale Boetticher"],a:1,x:"ساول گودمن وکیل آن‌هاست.",xe:"Saul Goodman is their lawyer."},
+{q:"کدام گزینه دربارهٔ گیل بوتیچر درست است؟",en:"Which statement about Gale Boetticher is correct?",o:["او شیمی‌دان است","او وکیل والتر است","او برادر هنک است","او مالک کارواش است"],oe:["He is a chemist","He is Walter's lawyer","He is Hank's brother","He owns the car wash"],a:0,x:"گیل بوتیچر شیمی‌دانی است که با گاس همکاری می‌کند.",xe:"Gale Boetticher is a chemist who works with Gus."},
+{q:"نام پسر والتر وایت چیست؟",en:"What is Walter White's son's name?",o:["Jesse","Flynn","Walter Junior","گزینه‌های دوم و سوم"],oe:["Jesse","Flynn","Walter Junior","Both B and C"],a:3,x:"او Walter Junior نام دارد و Flynn هم صدایش می‌کنند.",xe:"He is Walter Junior, and Flynn is also used as his name."},
+{q:"نام دختر والتر و اسکایلر چیست؟",en:"What is the name of Walter and Skyler's daughter?",o:["Holly","Jane","Lydia","Wendy"],a:0,x:"نام دختر آن‌ها Holly است.",xe:"Their daughter's name is Holly."},
+{q:"مایک اهرمانتراوت پیش‌تر چه شغلی داشت؟",en:"What was Mike Ehrmantraut's former profession?",o:["معلم","افسر پلیس","آشپز","روزنامه‌نگار"],oe:["Teacher","Police officer","Chef","Journalist"],a:1,x:"مایک قبلاً افسر پلیس فیلادلفیا بود.",xe:"Mike was formerly a Philadelphia police officer."},
+{q:"نام شیمی‌دانی که با گاس همکاری می‌کند چیست؟",en:"What is the name of the chemist who works with Gus?",o:["Gale Boetticher","Todd Alquist","Tuco Salamanca","Badger"],a:0,x:"گیل بوتیچر شیمی‌دانی است که با گاس کار می‌کند.",xe:"Gale Boetticher is the chemist who works with Gus."},
+{q:"والتر پیش از معلم شدن در تأسیس کدام شرکت نقش داشت؟",en:"Which company did Walter help found?",o:["Gray Matter Technologies","Los Pollos Hermanos","Vamonos Pest","Madrigal"],a:0,x:"والتر یکی از بنیان‌گذاران Gray Matter Technologies بود.",xe:"Walter helped found Gray Matter Technologies."},
+{q:"والتر از کدام کسب‌وکار برای پول‌شویی استفاده می‌کند؟",en:"Which business does Walter use for money laundering?",o:["کارواش A1A","رستوران گاس","فروشگاه موسیقی","باشگاه ورزشی"],oe:["A1A Car Wash","Gus's restaurant","Music store","Gym"],a:0,x:"والتر از کارواش A1A برای پول‌شویی استفاده می‌کند.",xe:"Walter uses the A1A Car Wash for money laundering."},
+{q:"Skinny Pete چه نسبتی با جسی دارد؟",en:"Who is Skinny Pete to Jesse?",o:["دوست جسی","برادر والتر","همکار هنک","پسر گاس"],oe:["Jesse's friend","Walter's brother","Hank's partner","Gus's son"],a:0,x:"Skinny Pete یکی از دوستان جسی است.",xe:"Skinny Pete is one of Jesse's friends."},
+{q:"نام شریک قدیمی والتر در Gray Matter چیست؟",en:"Who is Walter's former business partner at Gray Matter?",o:["Elliott Schwartz","Saul Goodman","Mike Ehrmantraut","Hank Schrader"],a:0,x:"الیوت شوارتز همراه با والتر در تأسیس شرکت نقش داشت.",xe:"Elliott Schwartz was involved with Walter in founding the company."},
+{q:"سریال اصلی Breaking Bad چند فصل دارد؟",en:"How many seasons does the original Breaking Bad series have?",o:["۳","۴","۵","۶"],oe:["3","4","5","6"],a:2,x:"سریال اصلی پنج فصل دارد.",xe:"The original series has five seasons."},
+{q:"نام فیلم دنباله‌ای دربارهٔ جسی پینکمن چیست؟",en:"What is the name of the sequel film about Jesse Pinkman?",o:["Better Call Saul","El Camino","The Blue Sky","Breaking Point"],a:1,x:"فیلم دنباله‌ای دربارهٔ جسی El Camino: A Breaking Bad Movie نام دارد.",xe:"The sequel film is titled El Camino: A Breaking Bad Movie."}
+];
+const $=id=>document.getElementById(id);
+let lang="fa",answers=Array(questions.length).fill(null),finished=false;
+const tr=(fa,en)=>lang==="fa"?fa:en;
+const num=n=>lang==="fa"?String(n).replace(/\d/g,d=>"۰۱۲۳۴۵۶۷۸۹"[d]):String(n);
+function changeLanguage(){
+ lang=$("language").value;document.documentElement.lang=lang;document.documentElement.dir=lang==="fa"?"rtl":"ltr";
+ $("badge").textContent=tr("⚗️ آزمون مخصوص طرفداران","⚗️ THE ULTIMATE FAN QUIZ");
+ $("description").textContent=tr("فکر می‌کنی همه‌چیز رو دربارهٔ والتر وایت و جسی پینکمن می‌دونی؟ با این ۲۰ سؤال خودت رو به چالش بکش!","Think you know everything about Walter White and Jesse Pinkman? Test yourself with 20 questions!");
+ $("statQuestions").textContent=tr("سؤال","Questions");$("statScore").textContent=tr("امتیاز کامل","Max score");$("statFans").textContent=tr("مخصوص طرفداران","For fans");
+ $("quizLabel").textContent=tr("آزمون طرفداران سریال","Breaking Bad Fan Quiz");
+ $("correctLabel").textContent=tr("درست: ","Correct: ");$("wrongLabel").textContent=tr("اشتباه: ","Wrong: ");$("blankLabel").textContent=tr("بی‌پاسخ: ","Unanswered: ");
+ $("resetBtn").textContent=tr("پاک کردن پاسخ‌ها","Clear answers");$("submitBtn").textContent=tr("بررسی پاسخ‌ها ←","Submit answers →");$("restartBtn").textContent=tr("🔄 شروع دوباره","🔄 Try again");$("footerText").textContent=tr("یک آزمون هواداری غیررسمی","An unofficial fan-made quiz");
+ render();
+}
+function render(){
+ $("quiz").innerHTML="";
+ questions.forEach((q,i)=>{
+  const card=document.createElement("article");card.className="card";card.id="q"+i;
+  const no=document.createElement("div");no.className="qnum";no.textContent=`QUESTION ${String(i+1).padStart(2,"0")} / 20`;
+  const title=document.createElement("h2");title.className="qtitle";title.textContent=lang==="fa"?q.q:q.en;
+  const opts=document.createElement("div");opts.className="options";
+  (lang==="fa"?q.o:(q.oe||q.o)).forEach((label,j)=>{
+   const b=document.createElement("button");b.type="button";b.className="option";if(answers[i]===j)b.classList.add("selected");
+   const l=document.createElement("span");l.className="letter";l.textContent="ABCD"[j];const tx=document.createElement("span");tx.textContent=label;b.append(l,tx);
+   if(finished){b.disabled=true;if(j===q.a)b.classList.add("correct");if(answers[i]===j&&j!==q.a)b.classList.add("wrong")}
+   b.addEventListener("click",()=>{if(finished)return;answers[i]=j;render()});opts.appendChild(b);
+  });
+  const exp=document.createElement("div");exp.className="explanation";if(finished){exp.classList.add("show");exp.textContent=answers[i]===null?tr(`بی‌پاسخ | جواب درست: ${q.o[q.a]} | ${q.x}`,`Unanswered | Correct answer: ${(q.oe||q.o)[q.a]} | ${q.xe}`):answers[i]===q.a?"✓ "+tr(q.x,q.xe):tr(`✗ پاسخ درست: ${q.o[q.a]} | ${q.x}`,`✗ Correct answer: ${(q.oe||q.o)[q.a]} | ${q.xe}`)}
+  card.append(no,title,opts,exp);$("quiz").appendChild(card);
+ });
+ updateProgress();
+ if(finished){$("submitBtn").disabled=true}
+}
+function updateProgress(){let n=answers.filter(a=>a!==null).length;$("progressText").textContent=tr(`${num(n)} از ۲۰ پاسخ داده شده`,`${n} of 20 answered`);$("progressBar").style.width=(n/20*100)+"%"}
+function finishQuiz(){
+ if(finished)return;let blank=answers.filter(a=>a===null).length;
+ if(blank&&!confirm(tr(`${num(blank)} سؤال بی‌پاسخ مانده. با همین وضعیت نتیجه را ببینی؟`,`${blank} questions are unanswered. Submit anyway?`)))return;
+ finished=true;let correct=answers.filter((a,i)=>a===questions[i].a).length,wrong=answers.filter((a,i)=>a!==null&&a!==questions[i].a).length,score=correct*5;
+ $("resultScore").textContent=score+"/100";$("correctCount").textContent=num(correct);$("wrongCount").textContent=num(wrong);$("blankCount").textContent=num(blank);
+ let title,message;if(score===100){title="👑 HEISENBERG LEVEL";message=tr("عالی! همهٔ سؤال‌ها را درست جواب دادی. یک طرفدار واقعی هستی!","Perfect! You answered every question correctly. You're a true fan!")}else if(score>=80){title="⚗️ MASTER CHEMIST";message=tr("فوق‌العاده بود! اطلاعاتت دربارهٔ سریال واقعاً قویه.","Excellent! You know Breaking Bad really well.")}else if(score>=60){title="🧪 GOOD COOK";message=tr("خوبه! جواب‌های درست را بررسی کن و برای امتیاز بهتر دوباره تلاش کن.","Nice work! Review the answers and try again for a higher score.")}else if(score>=40){title="🔍 GETTING STARTED";message=tr("بد نیست! هنوز چند نکته برای یاد گرفتن باقی مانده.","Not bad! There's still more of the story to discover.")}else{title="📺 TIME FOR A REWATCH";message=tr("وقتشه دوباره وارد دنیای والتر وایت بشی!","Looks like it's time to revisit Walter White's world!")}
+ $("resultTitle").textContent=title;$("resultMessage").textContent=message;$("result").style.display="block";$("actions").style.display="none";render();$("result").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function resetAnswers(){if(finished)return;answers=Array(20).fill(null);render();window.scrollTo({top:0,behavior:"smooth"})}
+function restart(){answers=Array(20).fill(null);finished=false;$("result").style.display="none";$("actions").style.display="flex";$("submitBtn").disabled=false;render();window.scrollTo({top:0,behavior:"smooth"})}
+$("language").addEventListener("change",changeLanguage);$("submitBtn").addEventListener("click",finishQuiz);$("resetBtn").addEventListener("click",resetAnswers);$("restartBtn").addEventListener("click",restart);
+render();
+</script>
+</body>
+</html>'''
+
+path = Path("/mnt/data/breaking_bad_quiz.html")
+path.write_text(html, encoding="utf-8")
+print(f"فایل HTML ساخته شد: {path}")
